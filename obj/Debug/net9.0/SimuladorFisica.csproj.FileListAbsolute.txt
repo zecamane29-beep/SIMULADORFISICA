@@ -12,3 +12,4 @@ C:\Users\Vnath\SimuladorFisica\obj\Debug\net9.0\refint\SimuladorFisica.dll
 C:\Users\Vnath\SimuladorFisica\obj\Debug\net9.0\SimuladorFisica.pdb
 C:\Users\Vnath\SimuladorFisica\obj\Debug\net9.0\SimuladorFisica.genruntimeconfig.cache
 C:\Users\Vnath\SimuladorFisica\obj\Debug\net9.0\ref\SimuladorFisica.dll
+C:\Users\Vnath\SimuladorFisica\obj\Debug\net9.0\SimuladorFisica.sourcelink.json
