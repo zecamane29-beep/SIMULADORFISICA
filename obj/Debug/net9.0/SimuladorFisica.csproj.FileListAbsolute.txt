@@ -1,0 +1,14 @@
+C:\Users\Vnath\SimuladorFisica\obj\Debug\net9.0\SimuladorFisica.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Vnath\SimuladorFisica\obj\Debug\net9.0\SimuladorFisica.AssemblyInfoInputs.cache
+C:\Users\Vnath\SimuladorFisica\obj\Debug\net9.0\SimuladorFisica.AssemblyInfo.cs
+C:\Users\Vnath\SimuladorFisica\obj\Debug\net9.0\SimuladorFisica.csproj.CoreCompileInputs.cache
+C:\Users\Vnath\SimuladorFisica\bin\Debug\net9.0\SimuladorFisica.exe
+C:\Users\Vnath\SimuladorFisica\bin\Debug\net9.0\SimuladorFisica.deps.json
+C:\Users\Vnath\SimuladorFisica\bin\Debug\net9.0\SimuladorFisica.runtimeconfig.json
+C:\Users\Vnath\SimuladorFisica\bin\Debug\net9.0\SimuladorFisica.dll
+C:\Users\Vnath\SimuladorFisica\bin\Debug\net9.0\SimuladorFisica.pdb
+C:\Users\Vnath\SimuladorFisica\obj\Debug\net9.0\SimuladorFisica.dll
+C:\Users\Vnath\SimuladorFisica\obj\Debug\net9.0\refint\SimuladorFisica.dll
+C:\Users\Vnath\SimuladorFisica\obj\Debug\net9.0\SimuladorFisica.pdb
+C:\Users\Vnath\SimuladorFisica\obj\Debug\net9.0\SimuladorFisica.genruntimeconfig.cache
+C:\Users\Vnath\SimuladorFisica\obj\Debug\net9.0\ref\SimuladorFisica.dll
