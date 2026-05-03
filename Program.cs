@@ -185,6 +185,30 @@ namespace SimuladorFisica
                         );
                         break;
 
+                    case "SMD":
+                        if (partes.Length != 4)
+                        {
+                            Console.WriteLine("Comando inválido. Sintaxe correta: SMD <NomeParticula> <DuracaoSimulacao> <PassoTemporal>.");
+                            break;
+                        }
+
+                        if (!double.TryParse(partes[2], NumberStyles.Any, cultura, out double duracaoDinamica) ||
+                            !double.TryParse(partes[3], NumberStyles.Any, cultura, out double passoDinamica))
+                        {
+                            Console.WriteLine("O valor da duração da simulação ou do passo temporal inválido.");
+                            break;
+                        }
+
+                        Console.WriteLine(
+                            simulacaoController.SimularDinamica(
+                                projetoController.ObterProjetoAtivo(),
+                                partes[1],
+                                duracaoDinamica,
+                                passoDinamica
+                            )
+                        );
+                        break;
+
                     default:
                         Console.WriteLine("Instrução inválida.");
                         break;

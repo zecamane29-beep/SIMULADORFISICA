@@ -6,7 +6,7 @@ namespace SimuladorFisica.Controllers
     {
         private const double Gravidade = 9.80;
 
-        public string SimularCinematica(Projeto? projetoAtivo, double duracaoSimulacao, double passoTemporal)
+        public string SimularCinematica(Projeto? projetoAtivo, double duracao, double passo)
         {
             if (projetoAtivo == null)
                 return "Nenhum projeto selecionado.";
@@ -16,49 +16,40 @@ namespace SimuladorFisica.Controllers
             if (particulas.Count == 0)
                 return "Nenhuma partícula registada.";
 
-            if (duracaoSimulacao <= 0 || passoTemporal <= 0)
+            if (duracao <= 0 || passo <= 0)
                 return "O valor da duração da simulação ou do passo temporal inválido.";
 
-            if (passoTemporal > duracaoSimulacao)
+            if (passo > duracao)
                 return "Passo invalido. O passo não pode ser superior ao tempo total.";
 
-            int numeroIteracoes = (int)(duracaoSimulacao / passoTemporal);
-
             List<string> linhas = new List<string>();
+
             linhas.Add("Simulação cinemática iniciada.");
-            linhas.Add($"Tempo total: {duracaoSimulacao:F2}s");
-            linhas.Add($"Passo: {passoTemporal:F2}s");
-            linhas.Add($"Número de iterações: {numeroIteracoes}");
+            linhas.Add($"Tempo total: {duracao:F2}s");
+            linhas.Add($"Passo temporal: {passo:F2}s");
 
-            for (double tempo = 0.0; tempo <= duracaoSimulacao + 0.0001; tempo += passoTemporal)
+            for (double t = 0; t <= duracao + 0.0001; t += passo)
             {
-                linhas.Add("==================================================");
-                linhas.Add($"INSTANTE DE TEMPO: {tempo:F2} s");
-                linhas.Add("==================================================");
+                linhas.Add("----------------------------------------");
+                linhas.Add($"Tempo: {t:F2}s");
 
-                foreach (Particula particula in particulas)
+                foreach (Particula p in particulas)
                 {
-                    Vetor2D aceleracaoEfetiva = ObterAceleracaoEfetiva(particula, projetoAtivo.GravidadeAtiva);
-                    Vetor2D posicaoAtual = CalcularPosicao(particula.PosicaoInicial, particula.VelocidadeInicial, aceleracaoEfetiva, tempo);
-                    Vetor2D velocidadeAtual = CalcularVelocidade(particula.VelocidadeInicial, aceleracaoEfetiva, tempo);
+                    Vetor2D aceleracao = ObterAceleracaoCinematica(p, projetoAtivo.GravidadeAtiva);
 
-                    double tempoAnterior = Math.Max(0, tempo - passoTemporal);
-                    Vetor2D posicaoAnterior = CalcularPosicao(particula.PosicaoInicial, particula.VelocidadeInicial, aceleracaoEfetiva, tempoAnterior);
+                    Vetor2D posicao = CalcularPosicao(p.PosicaoInicial, p.VelocidadeInicial, aceleracao, t);
+                    Vetor2D velocidade = CalcularVelocidade(p.VelocidadeInicial, aceleracao, t);
 
-                    Vetor2D deslocamentoIntervalo = new Vetor2D(
-                        posicaoAtual.X - posicaoAnterior.X,
-                        posicaoAtual.Y - posicaoAnterior.Y
-                    );
+                    double tempoAnterior = Math.Max(0, t - passo);
+                    Vetor2D posicaoAnterior = CalcularPosicao(p.PosicaoInicial, p.VelocidadeInicial, aceleracao, tempoAnterior);
+                    Vetor2D deslocamentoIntervalo = posicao.Subtrair(posicaoAnterior);
 
-                    double distanciaIntervalo = deslocamentoIntervalo.Magnitude();
-
-                    linhas.Add($"Partícula: {particula.Nome}");
-                    linhas.Add(FormatarGrandeza("Posição", posicaoAtual, "m"));
-                    linhas.Add(FormatarGrandeza("Velocidade", velocidadeAtual, "m/s"));
-                    linhas.Add(FormatarGrandeza("Aceleração", aceleracaoEfetiva, "m/s^2"));
-                    linhas.Add($"Deslocamento no intervalo: {deslocamentoIntervalo.Magnitude():F2} m");
-                    linhas.Add($"Distância percorrida no intervalo: {distanciaIntervalo:F2} m");
-                    linhas.Add("------------------------------------------------");
+                    linhas.Add($"Partícula: {p.Nome}");
+                    linhas.Add($"Posição: {FormatarVetor(posicao, "m")}");
+                    linhas.Add($"Velocidade: {FormatarVetor(velocidade, "m/s")}");
+                    linhas.Add($"Aceleração: {FormatarVetor(aceleracao, "m/s²")}");
+                    linhas.Add($"Deslocamento no intervalo: {FormatarVetor(deslocamentoIntervalo, "m")}");
+                    linhas.Add($"Distância percorrida no intervalo: {deslocamentoIntervalo.Magnitude():F2} m");
                 }
             }
 
@@ -66,7 +57,86 @@ namespace SimuladorFisica.Controllers
             return string.Join(Environment.NewLine, linhas);
         }
 
-        private Vetor2D ObterAceleracaoEfetiva(Particula particula, bool gravidadeAtiva)
+        public string SimularDinamica(Projeto? projetoAtivo, string nomeParticula, double duracao, double passo)
+        {
+            if (projetoAtivo == null)
+                return "Nenhum projeto selecionado.";
+
+            if (duracao <= 0 || passo <= 0)
+                return "O valor da duração da simulação ou do passo temporal inválido.";
+
+            if (passo > duracao)
+                return "Passo invalido. O passo não pode ser superior ao tempo total.";
+
+            Particula? particula = projetoAtivo.Particulas.Find(p => p.Nome == nomeParticula);
+
+            if (particula == null)
+                return $"Partícula {nomeParticula} não encontrada.";
+
+            Vetor2D forcaResultante = CalcularForcaResultante(particula, projetoAtivo.GravidadeAtiva);
+            Vetor2D aceleracaoDinamica = new Vetor2D(
+                forcaResultante.X / particula.Massa,
+                forcaResultante.Y / particula.Massa
+            );
+
+            List<string> linhas = new List<string>();
+
+            linhas.Add("Simulação dinâmica iniciada.");
+            linhas.Add($"Partícula: {particula.Nome}");
+            linhas.Add($"Massa: {particula.Massa:F2} kg");
+            linhas.Add($"Força resultante: {FormatarVetor(forcaResultante, "N")}");
+            linhas.Add($"Aceleração pela 2ª Lei de Newton: {FormatarVetor(aceleracaoDinamica, "m/s²")}");
+
+            for (double t = 0; t <= duracao + 0.0001; t += passo)
+            {
+                Vetor2D posicao = CalcularPosicao(
+                    particula.PosicaoInicial,
+                    particula.VelocidadeInicial,
+                    aceleracaoDinamica,
+                    t
+                );
+
+                Vetor2D velocidade = CalcularVelocidade(
+                    particula.VelocidadeInicial,
+                    aceleracaoDinamica,
+                    t
+                );
+
+                double tempoAnterior = Math.Max(0, t - passo);
+
+                Vetor2D posicaoAnterior = CalcularPosicao(
+                    particula.PosicaoInicial,
+                    particula.VelocidadeInicial,
+                    aceleracaoDinamica,
+                    tempoAnterior
+                );
+
+                Vetor2D deslocamentoIntervalo = posicao.Subtrair(posicaoAnterior);
+
+                double energiaCinetica = CalcularEnergiaCinetica(particula.Massa, velocidade);
+                double energiaPotencial = CalcularEnergiaPotencial(particula.Massa, posicao.Y);
+                double energiaMecanica = energiaCinetica + energiaPotencial;
+                double trabalho = CalcularTrabalho(forcaResultante, deslocamentoIntervalo);
+                double potenciaMedia = passo > 0 ? trabalho / passo : 0;
+
+                linhas.Add("----------------------------------------");
+                linhas.Add($"Tempo: {t:F2}s");
+                linhas.Add($"Posição: {FormatarVetor(posicao, "m")}");
+                linhas.Add($"Velocidade: {FormatarVetor(velocidade, "m/s")}");
+                linhas.Add($"Aceleração: {FormatarVetor(aceleracaoDinamica, "m/s²")}");
+                linhas.Add($"Deslocamento no intervalo: {FormatarVetor(deslocamentoIntervalo, "m")}");
+                linhas.Add($"Energia cinética: {energiaCinetica:F2} J");
+                linhas.Add($"Energia potencial gravítica: {energiaPotencial:F2} J");
+                linhas.Add($"Energia mecânica: {energiaMecanica:F2} J");
+                linhas.Add($"Trabalho no intervalo: {trabalho:F2} J");
+                linhas.Add($"Potência média no intervalo: {potenciaMedia:F2} W");
+            }
+
+            linhas.Add("Simulação dinâmica concluída.");
+            return string.Join(Environment.NewLine, linhas);
+        }
+
+        private Vetor2D ObterAceleracaoCinematica(Particula particula, bool gravidadeAtiva)
         {
             double ax = particula.Aceleracao.X;
             double ay = particula.Aceleracao.Y;
@@ -75,6 +145,24 @@ namespace SimuladorFisica.Controllers
                 ay -= Gravidade;
 
             return new Vetor2D(ax, ay);
+        }
+
+        private Vetor2D CalcularForcaResultante(Particula particula, bool gravidadeAtiva)
+        {
+            Vetor2D resultante = new Vetor2D(0, 0);
+
+            foreach (Forca forca in particula.Forcas.ToList())
+            {
+                resultante = resultante.Somar(forca.Valor);
+            }
+
+            if (gravidadeAtiva)
+            {
+                Vetor2D forcaPeso = new Vetor2D(0, -particula.Massa * Gravidade);
+                resultante = resultante.Somar(forcaPeso);
+            }
+
+            return resultante;
         }
 
         private Vetor2D CalcularPosicao(Vetor2D posicaoInicial, Vetor2D velocidadeInicial, Vetor2D aceleracao, double tempo)
@@ -93,9 +181,25 @@ namespace SimuladorFisica.Controllers
             return new Vetor2D(vx, vy);
         }
 
-        private string FormatarGrandeza(string nome, Vetor2D vetor, string unidade)
+        private double CalcularEnergiaCinetica(double massa, Vetor2D velocidade)
         {
-            return $"{nome}: ({vetor.X:F2}, {vetor.Y:F2}) {unidade} | módulo = {vetor.Magnitude():F2} {unidade} | ângulo = {vetor.AnguloGraus():F2} graus";
+            double v = velocidade.Magnitude();
+            return 0.5 * massa * v * v;
+        }
+
+        private double CalcularEnergiaPotencial(double massa, double altura)
+        {
+            return massa * Gravidade * altura;
+        }
+
+        private double CalcularTrabalho(Vetor2D forca, Vetor2D deslocamento)
+        {
+            return forca.ProdutoEscalar(deslocamento);
+        }
+
+        private string FormatarVetor(Vetor2D vetor, string unidade)
+        {
+            return $"({vetor.X:F2}, {vetor.Y:F2}) {unidade} | módulo = {vetor.Magnitude():F2} {unidade} | ângulo = {vetor.AnguloGraus():F2}°";
         }
     }
 }
